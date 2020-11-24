@@ -1,0 +1,7 @@
+
+*.xml
+src/utils/__pycache__/utils.cpython-37.pyc
+src/pipelines/__pycache__/ingestion.cpython-37.pyc
+*.pyc
+*.ipynb
+*.iml
