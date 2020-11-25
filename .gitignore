@@ -5,3 +5,5 @@ src/pipelines/__pycache__/ingestion.cpython-37.pyc
 *.pyc
 *.ipynb
 *.iml
+.ipynb_checkpoints/transformacion_data-checkpoint.py
+.~transformacion_data.py

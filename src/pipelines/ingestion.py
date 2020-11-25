@@ -10,21 +10,30 @@ def ingest_file(path_file):
 
 
 def drop_cols(df):
+
+    #renombra delegacion_inicio por del
+    df.rename(columns={'delegacion_inicio': 'del'}, inplace=True)
     list_cols = ["folio",
+                 "dia_semana",
                  "fecha_cierre",
                  "año_cierre",
                  "mes_cierre",
                  "hora_cierre",
                  "clas_con_f_alarma",
                  "delegacion_cierre",
-                 "codigo_cierre"]
+                 "codigo_cierre",
+                 "latitud",
+                 "longitud",
+                 "mes"]
     df = df.drop(columns=list_cols)
+    df.dropna(inplace=True)
+
     return df
 
 
 def generate_label(df):
     cd = df["codigo_cierre"].str.extract('.*\(([A-Z])\).*')
-    label = np.where((cd == "F") | (cd == "N"), 0, 1)
+    label = np.where((cd == "F") | (cd == "N"), 1, 0)
     df = df.assign(label=label)
     return df
 
@@ -39,6 +48,5 @@ def ingest(path):
     df = ingest_file(path)
     df = generate_label(df)
     df = drop_cols(df)
-    print(df.columns)
     save_ingestion(df, "../output/ingest_df.pkl")
     return
