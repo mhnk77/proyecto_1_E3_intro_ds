@@ -136,31 +136,28 @@ CV_rfc.best_estimator_
 
 #%%
 
-pred=CV_rfc.predict(x_test)
+pred=CV_rfc.best_estimator_.predict(x_test)
 
 
 #%%
 
 pd.DataFrame(pred).value_counts()
 
-
-
-
-rfc1 = RandomForestClassifier(random_state =42, max_features = 5, n_estimators = 200, criterion = 'gini', max_depth=20)
+#rfc1 = RandomForestClassifier(random_state =42, max_features = 5, n_estimators = 200, criterion = 'gini', max_depth=20)
 
 t.tic()
-rfc1.fit(x_train, y_train)
+#rfc1.fit(x_train, y_train)
 t.toc()
 
-pred=rfc1.predict(x_test)
+#pred=rfc1.predict(x_test)
 
 pd.DataFrame(pred).value_counts()
 
 
 # In[45]:
     
-#pred_train = CV_rfc.predict(x_train)
-pred_train = rfc1.predict(x_train)
+pred_train = CV_rfc.predict(x_train)
+#pred_train = rfc1.predict(x_train)
 
 print("Precision for Random Forest on train data: ",precision_score(y_train,pred_train))
     
@@ -179,8 +176,24 @@ print("Precision for Random Forest on test data: ",precision_score(y_test,pred))
 # In[49]:
 
 
-#d_imp = {'feature': x_train.columns, 'importance': CV_rfc.best_estimator_.feature_importances_}
-d_imp = {'feature': x_train.columns, 'importance': rfc1.feature_importances_}
+d_imp = {'feature': x_train.columns, 'importance': CV_rfc.best_estimator_.feature_importances_}
+#d_imp = {'feature': x_train.columns, 'importance': rfc1.feature_importances_}
 
 pd.DataFrame(d_imp).sort_values(by = 'importance', ascending = False)
+
+
+outfile = open('var_importance.pickle','wb')
+pickle.dump(d_imp,outfile)
+
+outfile.close()
+
+
+
+outfile = open('cv_model.pickle','wb')
+pickle.dump(CV_rfc,outfile)
+
+outfile.close()
+
+
+
 
