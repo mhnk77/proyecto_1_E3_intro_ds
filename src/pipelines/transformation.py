@@ -8,15 +8,23 @@ def load_ingestion(path):
 
 
 def date_transformation(df, col):
+
     if col == "fecha_creacion":
         df[col] = df[col].replace("/19$", "/2019", regex=True) \
             .replace("/18$", "/2018", regex=True)
-        df[col] = pd.to_datetime(df[col], format='%d/%m/%Y')
+        #df[col] = pd.to_datetime(df["fecha_creacion"], format='%d/%m/%Y')
 
     elif col == "hora_creacion":
         z = df[df[col].str.match('^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$') == False]
         df.loc[z.index, col] = pd.to_timedelta(z[col].astype(float), 'days')
-        df[col] = pd.to_timedelta(df[col], 'ns')
+        #df[col] = pd.to_timedelta(df[col], 'ns')
+
+    elif col == "dttm_creacion":
+        df[col] = pd.to_datetime(df["fecha_creacion"], format='%d/%m/%Y') + \
+                  pd.to_timedelta(df["hora_creacion"], 'ns')
+        # Importantisimo para el Time SeriesSplit
+        df = df.sort_values(by="dttm_creacion").reset_index().drop(columns='index')
+        df = df.drop(columns=["fecha_creacion", "hora_creacion"])
 
     return df
 
@@ -26,6 +34,7 @@ def numeric_transformation(df, col):
 
 
 def categoric_transformation(df, col):
+
     if col == "incidente_c4":
         df[col] = df[col].str.lower() \
             .str.normalize('NFKD').str.encode('ascii', errors='ignore') \
@@ -58,13 +67,14 @@ def categoric_transformation(df, col):
         df = pd.get_dummies(df, columns=[col])
 
     elif col == "geopoint":
+
         geo_top = df[col].value_counts() \
             .reset_index(name="n").query('n >= 300')['index'].values
         df['geo_p'] = np.where((df[col].isin(geo_top)), "frecuente", "aislado")
         df = pd.get_dummies(df, columns=['geo_p'])
         df = df.drop(columns=[col])
 
-    elif col == "fecha_creacion":
+    elif col == "dttm_creacion":
         df['ano'] = df[col].dt.year
         #df = pd.get_dummies(df, columns=['ano'])
 
@@ -72,19 +82,23 @@ def categoric_transformation(df, col):
 
 
 def cyclic_transformation(df, col):
-    if col == "hora_creacion":
+
+    if col == "dttm_creacion":
         hours = 24
-        df['sin_hr'] = np.sin(2 * np.pi * df[col].dt.components.hours / hours)
-        df['cos_hr'] = np.cos(2 * np.pi * df[col].dt.components.hours / hours)
-        df = df.drop(columns=[col])
-    elif col == "fecha_creacion":
         dia = 7
+        mes = 12
+
+        df['sin_hr'] = np.sin(2 * np.pi * df[col].dt.hour / hours)
+        df['cos_hr'] = np.cos(2 * np.pi * df[col].dt.hour / hours)
+
         df['sin_dia'] = np.sin(2 * np.pi * df[col].dt.dayofweek + 1 / dia)
         df['cos_dia'] = np.cos(2 * np.pi * df[col].dt.dayofweek + 1 / dia)
-        mes = 12
-        df['sin_mes'] = np.sin(2 * np.pi * df[col].dt.month / dia)
-        df['cos_mes'] = np.cos(2 * np.pi * df[col].dt.month / dia)
+
+        df['sin_mes'] = np.sin(2 * np.pi * df[col].dt.month / mes)
+        df['cos_mes'] = np.cos(2 * np.pi * df[col].dt.month / mes)
+
         df = df.drop(columns=[col])
+
     return df
 
 
@@ -97,7 +111,8 @@ def transform(path):
     df = load_ingestion(path)
 
     #date_transform
-    lt_date = ["fecha_creacion", "hora_creacion"]
+    ##"dttm_creacion" crea una columna uniendo fecha y hora creacion
+    lt_date = ["fecha_creacion", "hora_creacion", "dttm_creacion"]
     for i in lt_date:
         df = date_transformation(df, i)
 
@@ -113,11 +128,9 @@ def transform(path):
     df = categoric_transformation(df, "geopoint")
 
     ##se extrae año
-    df = categoric_transformation(df, "fecha_creacion")
+    df = categoric_transformation(df, "dttm_creacion")
 
-    #cyclic_transform
-    lt_cyc = ["hora_creacion", "fecha_creacion"]
-    for i in lt_cyc:
-        df = cyclic_transformation(df, i)
+    #cyclic transform
+    df = cyclic_transformation(df, "dttm_creacion")
 
-    save_transformation(df, "../output/transformation_df.pkl")
+    save_transformation(df, "output/transformation_df.pkl")

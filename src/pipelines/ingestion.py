@@ -48,5 +48,5 @@ def ingest(path):
     df = ingest_file(path)
     df = generate_label(df)
     df = drop_cols(df)
-    save_ingestion(df, "../output/ingest_df.pkl")
+    save_ingestion(df, "output/ingest_df.pkl")
     return
