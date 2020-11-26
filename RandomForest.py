@@ -114,7 +114,7 @@ param_grid
 
 
 
-CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= tscv, scoring = 'precision', n_jobs= 5)
+CV_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= tscv, scoring = 'precision', n_jobs= 8)
 
 
 
@@ -138,10 +138,10 @@ CV_rfc.best_estimator_
 
 pred=CV_rfc.best_estimator_.predict(x_test)
 
+pd.DataFrame(pred).value_counts()
 
 #%%
 
-pd.DataFrame(pred).value_counts()
 
 #rfc1 = RandomForestClassifier(random_state =42, max_features = 5, n_estimators = 200, criterion = 'gini', max_depth=20)
 
@@ -156,7 +156,7 @@ pd.DataFrame(pred).value_counts()
 
 # In[45]:
     
-pred_train = CV_rfc.predict(x_train)
+pred_train = CV_rfc.best_estimator_.predict(x_train)
 #pred_train = rfc1.predict(x_train)
 
 print("Precision for Random Forest on train data: ",precision_score(y_train,pred_train))

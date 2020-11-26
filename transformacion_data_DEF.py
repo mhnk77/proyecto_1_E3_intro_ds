@@ -94,7 +94,7 @@ data_rf = data_rf.drop(columns = ['folio', 'clas_con_f_alarma', 'latitud', 'long
 
 ## Feature engineering
 
-incidentes_top = data_rf.incidente_c4.value_counts().head(7).reset_index(name = "n")['index'].values
+incidentes_top = data_rf.incidente_c4.value_counts().head(5).reset_index(name = "n")['index'].values
 
 data_rf['incidente'] = np.where((data_rf['incidente_c4'].isin(incidentes_top)) ,data_rf['incidente_c4'],"otros" )
 
