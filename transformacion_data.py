@@ -89,11 +89,12 @@ data_clean['label'] = np.where((data_clean['codigo_cierre'] == 'N') | (data_clea
 data_rf = data_clean.loc[:,~data_clean.columns.str.contains('_cierre')]
 
 #Quitamos el resto de las variables que no serán útiles
-data_rf = data_rf.drop(columns = ['folio', 'clas_con_f_alarma', 'latitud', 'longitud', 'dttm_creacion', 'fecha_creacion', 'año_creacion'])
+data_rf = data_rf.drop(columns = ['folio', 'clas_con_f_alarma', 'latitud', 'longitud', #'dttm_creacion',
+                                  'fecha_creacion', 'año_creacion'])
 
 ## Feature engineering
 
-incidentes_top = data_rf.incidente_c4.value_counts().head(9).reset_index(name = "n")['index'].values
+incidentes_top = data_rf.incidente_c4.value_counts().head(7).reset_index(name = "n")['index'].values
 
 data_rf['incidente'] = np.where((data_rf['incidente_c4'].isin(incidentes_top)) ,data_rf['incidente_c4'],"otros" )
 
@@ -107,18 +108,37 @@ data_rf['tipo_entrada_mod'] = np.where((data_rf['tipo_entrada'].isin(tipo_entrad
 
 data_rf['delegacion_inicio'] = data_rf['delegacion_inicio'].str.replace(" ", "_", regex = True)
 
-data_rf = data_rf.drop(columns = ['geopoint','incidente_c4','tipo_entrada'])
+data_rf['sin_hora'] = np.sin(data_rf.hora_creacion/24*2*np.pi)
+
+data_rf['cos_hora'] = np.cos(data_rf.hora_creacion/24*2*np.pi)
+
+data_rf['sin_mes'] = np.sin(data_rf.mes_creacion/12*2*np.pi)
+
+data_rf['cos_mes'] = np.cos(data_rf.mes_creacion/12*2*np.pi)
+
+data_rf['sin_dow'] = np.sin(2*np.pi*(data_rf.dow_creacion + 1)/7)
+
+data_rf['cos_dow'] = np.cos(2*np.pi*(data_rf.dow_creacion + 1)/7)
 
 #Encoding
 
+data_rf = data_rf.drop(columns = ['geopoint','incidente_c4','tipo_entrada', 'dow_creacion', 'hora_creacion', 'mes_creacion'])
+
+
 data_encoded = pd.get_dummies(data_rf, columns = ['delegacion_inicio', 'incidente', 'tipo_geopoint', 'tipo_entrada_mod'])
 
+#Importantisimo para el Time SeriesSplit
+data_encoded = data_encoded.sort_values(by = "dttm_creacion").reset_index().drop(columns = 'index')
+
+#data_encoded.query('sin_mes <= 0.7')[['sin_mes', 'cos_mes']].sort_values('sin_mes')
+
+data_encoded
+
+data_encoded.columns
 
 
+outfile = open('data_encoded_pickle.pickle','wb')
+pickle.dump(data_encoded,outfile)
 
-
-
-
-
-
+outfile.close()
 
