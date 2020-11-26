@@ -130,7 +130,6 @@ data_encoded = pd.get_dummies(data_rf, columns = ['delegacion_inicio', 'incident
 #Importantisimo para el Time SeriesSplit
 data_encoded = data_encoded.sort_values(by = "dttm_creacion").reset_index().drop(columns = 'index')
 
-#data_encoded.query('sin_mes <= 0.7')[['sin_mes', 'cos_mes']].sort_values('sin_mes')
 
 data_encoded
 
